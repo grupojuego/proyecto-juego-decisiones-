@@ -1,0 +1,241 @@
+//Codigo Fuente juego Unity 3D//
+RangoVision.js
+////////////////////////////////
+var Monstruo : IA;//se llama la variable Monstruo del Script IA para modificar
+			la variable estado.
+
+
+function Start () {
+
+}
+
+function Update () {
+
+}
+function OnTriggerEnter (other : Collider){  //OnTriggerEnter significa que al entrar en el limite
+						en este caso si el objeto con el tag de Jugador colisione
+						con el objeto que posea esta funcion cambie la variable de estado
+						a 1.
+    if (other.gameObject.tag == ("Jugador")) {
+        Monstruo.estado = 1;    
+    }
+}
+ function OnTriggerExit (other : Collider){  //OnTriggerExit significa que al salir del limite en este caso
+						si el objeto con el tag Jugador deje de colisionar con el objeto
+						que posea esta funcion cambie la variable estado del Script "IA" a 0.
+    if (other.gameObject.tag == ("Jugador")) {
+        Monstruo.estado = 0;    
+    }
+ }
+}
+
+////////////////////////////////
+IA.js
+////////////////////////////////
+//estado
+var estado: int 	= 0;
+//animaciones
+var caminar: AnimationClip;
+var corriendo: AnimationClip;
+//valores utilizados por los metodos
+var pat: float=0; 
+var patu: boolean = true;
+var direccion: float=1;
+//esta variable Jugador al darle esta asignacion de Transform, cambiamos la posicion
+respecto al jugador del objeto que posea esta Script.
+var Jugador: Transform;
+//movimiento
+var vel_seguir: float = 4;  
+function Start () {
+
+}
+
+function Update () { 
+
+//en estas condiciones estamos haciendo un contador de tiempo
+que va subiendo hasta llegar a 10, el cual al llegar a este numero
+deciende hasta llegar a o completando un ciclo de vaiven
+al completar este circulo cambia la direccion del avance del
+enemigo (en este caso) haciendo que este tenga un comportamiento
+de patrullaje como se muestra en el metodo patrullar.//
+
+    if(pat<=0){
+        patu=false;
+        estado=0;
+        direccion= direccion * -1;
+    }
+    if(pat>=10){
+        patu=true;
+        estado=0;
+    }
+//estas son las condiciones para el contador de tiempo que hace decrecer
+o crecer la variable pat.//
+    if(patu==true && estado==0){
+        pat-=1*Time.deltaTime;
+    }
+    if(patu==false && estado==0){
+        pat+=1*Time.deltaTime;
+    }
+
+if(estado==0){//patrullar
+    patrullar();
+    transform.rotation.x=0;
+    transform.rotation.z=0;
+
+}
+if(estado==1){//perseguir
+    perseguir();
+    transform.rotation.x=0;
+    transform.rotation.z=0;
+}
+if(estado==2){//esquivar 
+// aun no esta implementada en el proyecto//
+    esquivar();
+}
+}
+
+//funciones que puede hacer el objeto con la IA basica.
+
+function patrullar(){
+    GetComponent.<Animation>().Play (caminar.name);
+    transform.Rotate (Vector3 (0,25*direccion,0)*Time.deltaTime);
+    transform.Translate (Vector3 (0,0,1)*Time.deltaTime);
+
+}
+function perseguir(){
+    GetComponent.<Animation>().Play (corriendo.name);
+    transform.LookAt (Jugador);
+    transform.Translate(Vector3(0,0,1*vel_seguir*Time.deltaTime));
+
+    
+}
+function esquivar(){
+}
+
+///////////////////////////////////
+Jugador.js
+//////////////////////////////////
+//basicamente hace que el personaje al colisionar con un objeto de tag "monstruos"
+pierda la partida (enviandolo al menu de perdida).//
+
+function Start () {
+
+}
+
+function Update () {
+
+}
+function OnTriggerEnter(other: Collider){
+    if(other.gameObject.tag == ("Monstruos")){
+        Application.LoadLevel("Perdida");
+    }
+}
+
+/////////////////////////////////////////
+//niveles de graficos con los que cuenta unity 3D implementados en el "menu graficos"
+public function Graficos1()
+{
+    QualitySettings.currentLevel = QualityLevel.Fastest;
+}
+public function Graficos2()
+{
+    QualitySettings.currentLevel = QualityLevel.Fast;
+}
+public function Graficos3()
+{
+    QualitySettings.currentLevel = QualityLevel.Simple;
+}
+public function Graficos4()
+{
+    QualitySettings.currentLevel = QualityLevel.Good;
+}
+public function Graficos5()
+{
+    QualitySettings.currentLevel = QualityLevel.Beautiful;
+}
+public function Graficos6()
+{
+    QualitySettings.currentLevel = QualityLevel.Fantastic;
+}
+//////////////////////////////////////////////////
+Botones
+/////////////////////////////////////////////////
+//diferentes botones que funcionan con el menu (eh utilizado el mismo script para el menu principal
+y el menu perdida en un intento de reutilizar codigo)//
+
+function Start(){
+}
+function Update(){
+}
+public function BotonJugar()
+{
+    Application.LoadLevel("Mapa");
+}
+public function BotonSalir()
+{
+    Application.Quit();
+}
+public function BotonAceptar(){
+    Application.LoadLevel("Menu");
+}
+/////////////////////////////////////////////////
+MenuPausa.js
+/////////////////////////////////////////////////
+//
+var pauseMenuFont:Font;//pide una fuente con la que aparecera las letras del menu//
+private var pauseEnabled=false;//es una variable de pausa que detiene la aplicacion cuando este
+esta funcionando, sin cerrar o reiniciar este.//
+
+function Start () {//es para que funcione apenas se abra el Script y se mantenga
+como condiciones del Script continuas, a menos que otro metodo lo cambie.
+    pauseEnabled=false;//la variable que detiene la aplicacion esta con un valor booleano de falso.
+    Time.timeScale=1;//es la escala de tiempo (la cual vendria siendo la normal
+    AudioListener.volume=1;//volumen de la aplicacion la cual es la normal en 1.
+    Cursor.visible=false;//ver si el cursor esta visible o no.
+}
+
+function Update () {
+    if(Input.GetKeyDown("escape")){//al presionar la tecla "ESC" activa las condiciones
+de cambiar la escala de tiempo a 0, hacer parecer el cursor y cargar un Canvas con 
+sus botones textos y diseño. O de manera contraria hacer lo contrario y volver al juego
+ocultando el cursor y volviendo la escala de tiempo a la normal.
+    
+    if(pauseEnabled == true){
+        pauseEnabled =false;
+        AudioListener.volume=1;//(los audio listener decidi dejarles el mismo volumen
+				en el menu de pausa para que se siguiera escuchando el sonido de la musica, lo cual
+				pienso cambiar mas adelante si tuviera algun tipo de conflicto con el sonido del monstruo
+				por si el usuario queda dentro de los limites de este, para no seguir reproduciendo
+				el "screemer")
+        Time.timeScale=1;
+        Cursor.visible=false;
+    }else if(pauseEnabled==false){
+        pauseEnabled=true;
+        AudioListener.volume=1;
+        Time.timeScale=0;
+        Cursor.visible=true;
+    }
+    }
+}
+private var showGraphicsDropDown = false;
+function OnGUI(){
+    GUI.skin.box.font=pauseMenuFont;
+    GUI.skin.button.font=pauseMenuFont;
+    if(pauseEnabled==true){
+        GUI.Box(Rect(Screen.width/2 - 100,Screen.height/2 - 100,250,150),"Juego Detenido");
+        if(GUI.Button(Rect(Screen.width/2 - 100,Screen.height/2-50,250,50), "Menu Principal")){Application.LoadLevel("Menu");}
+        if(GUI.Button(Rect(Screen.width/2-100,Screen.height/2+0,250,50),"Salir")){Application.Quit();}
+    }
+}
+////////////////////////////////////////
+Sonido.js
+///////////////////////////////////////
+//por ahora solo cumple la funcion del grito del monstruo al entrar en su limite
+pero mas adelante se puede utilizar para otro tipo de eventos como el romperse una ventana
+o un trueno, etc.//
+
+var Sound: AudioClip;
+function OnTriggerEnter(){
+    GetComponent.<AudioSource>().PlayOneShot(Sound);
+}
+//este ultimo aun sigue en investigacion...//
